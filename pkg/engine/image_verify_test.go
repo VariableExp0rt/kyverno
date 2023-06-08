@@ -16,12 +16,10 @@ import (
 	"github.com/kyverno/kyverno/pkg/engine/context/resolvers"
 	"github.com/kyverno/kyverno/pkg/engine/internal"
 	"github.com/kyverno/kyverno/pkg/engine/jmespath"
-	"github.com/kyverno/kyverno/pkg/engine/mutate/patch"
 	"github.com/kyverno/kyverno/pkg/engine/policycontext"
 	engineutils "github.com/kyverno/kyverno/pkg/engine/utils"
 	"github.com/kyverno/kyverno/pkg/registryclient"
 	kubeutils "github.com/kyverno/kyverno/pkg/utils/kube"
-	"github.com/mattbaird/jsonpatch"
 	"gotest.tools/assert"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	kubefake "k8s.io/client-go/kubernetes/fake"
@@ -184,7 +182,6 @@ func testVerifyAndPatchImages(
 		rclient,
 		engineapi.DefaultContextLoaderFactory(cmResolver),
 		nil,
-		"",
 	)
 	return e.VerifyAndPatchImages(
 		ctx,
@@ -224,16 +221,11 @@ func buildContext(t *testing.T, policy, resource string, oldResource string) *Po
 	resourceUnstructured, err := kubeutils.BytesToUnstructured([]byte(resource))
 	assert.NilError(t, err)
 
-	policyContext, err := policycontext.NewPolicyContext(
-		jp,
-		*resourceUnstructured,
-		kyverno.Create,
-		nil,
-		cfg,
-	)
+	ctx := enginecontext.NewContext(jp)
+	err = enginecontext.AddResource(ctx, []byte(resource))
 	assert.NilError(t, err)
 
-	policyContext = policyContext.
+	policyContext := policycontext.NewPolicyContextWithJsonContext(kyverno.Create, ctx).
 		WithPolicy(&cpol).
 		WithNewResource(*resourceUnstructured)
 
@@ -241,10 +233,15 @@ func buildContext(t *testing.T, policy, resource string, oldResource string) *Po
 		oldResourceUnstructured, err := kubeutils.BytesToUnstructured([]byte(oldResource))
 		assert.NilError(t, err)
 
-		err = enginecontext.AddOldResource(policyContext.JSONContext(), []byte(oldResource))
+		err = enginecontext.AddOldResource(ctx, []byte(oldResource))
 		assert.NilError(t, err)
 
 		policyContext = policyContext.WithOldResource(*oldResourceUnstructured)
+	}
+
+	if err := ctx.AddImageInfos(resourceUnstructured, cfg); err != nil {
+		t.Errorf("unable to add image info to variables context: %v", err)
+		t.Fail()
 	}
 
 	return policyContext
@@ -480,13 +477,9 @@ func Test_SignatureGoodSigned(t *testing.T) {
 	engineResp, _ := testVerifyAndPatchImages(context.TODO(), registryclient.NewOrDie(), nil, policyContext, cfg)
 	assert.Equal(t, len(engineResp.PolicyResponse.Rules), 1)
 	assert.Equal(t, engineResp.PolicyResponse.Rules[0].Status(), engineapi.RuleStatusPass, engineResp.PolicyResponse.Rules[0].Message())
-	constainers, found, err := unstructured.NestedSlice(engineResp.PatchedResource.UnstructuredContent(), "spec", "containers")
-	assert.NilError(t, err)
-	assert.Equal(t, true, found)
-	image, found, err := unstructured.NestedString(constainers[0].(map[string]interface{}), "image")
-	assert.NilError(t, err)
-	assert.Equal(t, true, found)
-	assert.Equal(t, "ghcr.io/kyverno/test-verify-image:signed@sha256:b31bfb4d0213f254d361e0079deaaebefa4f82ba7aa76ef82e90b4935ad5b105", image)
+	assert.Equal(t, len(engineResp.PolicyResponse.Rules[0].Patches()), 1)
+	patch := engineResp.PolicyResponse.Rules[0].Patches()[0]
+	assert.Equal(t, string(patch), "{\"op\":\"replace\",\"path\":\"/spec/containers/0/image\",\"value\":\"ghcr.io/kyverno/test-verify-image:signed@sha256:b31bfb4d0213f254d361e0079deaaebefa4f82ba7aa76ef82e90b4935ad5b105\"}")
 }
 
 func Test_SignatureUnsigned(t *testing.T) {
@@ -804,8 +797,8 @@ func Test_MarkImageVerified(t *testing.T) {
 	assert.Equal(t, verified, true)
 }
 
-func testApplyPatches(t *testing.T, patches []jsonpatch.JsonPatchOperation) unstructured.Unstructured {
-	patchedResource, err := engineutils.ApplyPatches([]byte(testResource), patch.ConvertPatches(patches...))
+func testApplyPatches(t *testing.T, patches [][]byte) unstructured.Unstructured {
+	patchedResource, err := engineutils.ApplyPatches([]byte(testResource), patches)
 	assert.NilError(t, err)
 	assert.Assert(t, patchedResource != nil)
 
