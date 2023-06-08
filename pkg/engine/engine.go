@@ -21,24 +21,23 @@ import (
 	"github.com/kyverno/kyverno/pkg/registryclient"
 	"github.com/kyverno/kyverno/pkg/tracing"
 	stringutils "github.com/kyverno/kyverno/pkg/utils/strings"
-	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/metric/global"
+	"go.opentelemetry.io/otel/metric/instrument"
 	"go.opentelemetry.io/otel/trace"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
 
 type engine struct {
-	configuration            config.Configuration
-	metricsConfiguration     config.MetricsConfiguration
-	jp                       jmespath.Interface
-	client                   dclient.Interface
-	rclient                  registryclient.Client
-	contextLoader            engineapi.ContextLoaderFactory
-	exceptionSelector        engineapi.PolicyExceptionSelector
-	imageSignatureRepository string
+	configuration        config.Configuration
+	metricsConfiguration config.MetricsConfiguration
+	jp                   jmespath.Interface
+	client               dclient.Interface
+	rclient              registryclient.Client
+	contextLoader        engineapi.ContextLoaderFactory
+	exceptionSelector    engineapi.PolicyExceptionSelector
 	// metrics
-	resultCounter     metric.Int64Counter
-	durationHistogram metric.Float64Histogram
+	resultCounter     instrument.Int64Counter
+	durationHistogram instrument.Float64Histogram
 }
 
 type handlerFactory = func() (handlers.Handler, error)
@@ -51,34 +50,32 @@ func NewEngine(
 	rclient registryclient.Client,
 	contextLoader engineapi.ContextLoaderFactory,
 	exceptionSelector engineapi.PolicyExceptionSelector,
-	imageSignatureRepository string,
 ) engineapi.Engine {
 	meter := global.MeterProvider().Meter(metrics.MeterName)
 	resultCounter, err := meter.Int64Counter(
 		"kyverno_policy_results",
-		metric.WithDescription("can be used to track the results associated with the policies applied in the user's cluster, at the level from rule to policy to admission requests"),
+		instrument.WithDescription("can be used to track the results associated with the policies applied in the user's cluster, at the level from rule to policy to admission requests"),
 	)
 	if err != nil {
 		logging.Error(err, "failed to register metric kyverno_policy_results")
 	}
 	durationHistogram, err := meter.Float64Histogram(
 		"kyverno_policy_execution_duration_seconds",
-		metric.WithDescription("can be used to track the latencies (in seconds) associated with the execution/processing of the individual rules under Kyverno policies whenever they evaluate incoming resource requests"),
+		instrument.WithDescription("can be used to track the latencies (in seconds) associated with the execution/processing of the individual rules under Kyverno policies whenever they evaluate incoming resource requests"),
 	)
 	if err != nil {
 		logging.Error(err, "failed to register metric kyverno_policy_execution_duration_seconds")
 	}
 	return &engine{
-		configuration:            configuration,
-		metricsConfiguration:     metricsConfiguration,
-		jp:                       jp,
-		client:                   client,
-		rclient:                  rclient,
-		contextLoader:            contextLoader,
-		exceptionSelector:        exceptionSelector,
-		imageSignatureRepository: imageSignatureRepository,
-		resultCounter:            resultCounter,
-		durationHistogram:        durationHistogram,
+		configuration:        configuration,
+		metricsConfiguration: metricsConfiguration,
+		jp:                   jp,
+		client:               client,
+		rclient:              rclient,
+		contextLoader:        contextLoader,
+		exceptionSelector:    exceptionSelector,
+		resultCounter:        resultCounter,
+		durationHistogram:    durationHistogram,
 	}
 }
 
@@ -141,10 +138,8 @@ func (e *engine) VerifyAndPatchImages(
 	ivm := engineapi.ImageVerificationMetadata{}
 	logger := internal.LoggerWithPolicyContext(logging.WithName("engine.verify"), policyContext)
 	if internal.MatchPolicyContext(logger, policyContext, e.configuration) {
-		policyResponse, patchedResource, innerIvm := e.verifyAndPatchImages(ctx, logger, policyContext)
-		response, ivm = response.
-			WithPolicyResponse(policyResponse).
-			WithPatchedResource(patchedResource), innerIvm
+		policyResponse, innerIvm := e.verifyAndPatchImages(ctx, logger, policyContext)
+		response, ivm = response.WithPolicyResponse(policyResponse), innerIvm
 	}
 	response = response.WithStats(engineapi.NewExecutionStats(startTime, time.Now()))
 	e.reportMetrics(ctx, logger, policyContext.Operation(), policyContext.AdmissionOperation(), response)
@@ -185,17 +180,11 @@ func (e *engine) ContextLoader(
 }
 
 // matches checks if either the new or old resource satisfies the filter conditions defined in the rule
-func (e *engine) matches(
+func matches(
 	rule kyvernov1.Rule,
 	policyContext engineapi.PolicyContext,
 	resource unstructured.Unstructured,
 ) error {
-	if policyContext.AdmissionOperation() {
-		request := policyContext.AdmissionInfo()
-		if e.configuration.IsExcluded(request.AdmissionUserInfo.Username, request.AdmissionUserInfo.Groups, request.Roles, request.ClusterRoles) {
-			return fmt.Errorf("excluded by configuration")
-		}
-	}
 	gvk, subresource := policyContext.ResourceKind()
 	err := engineutils.MatchesResourceDescription(
 		resource,
@@ -244,7 +233,7 @@ func (e *engine) invokeRuleHandler(
 		fmt.Sprintf("RULE %s", rule.Name),
 		func(ctx context.Context, span trace.Span) (unstructured.Unstructured, []engineapi.RuleResponse) {
 			// check if resource and rule match
-			if err := e.matches(rule, policyContext, resource); err != nil {
+			if err := matches(rule, policyContext, resource); err != nil {
 				logger.V(4).Info("rule not matched", "reason", err.Error())
 				return resource, nil
 			}

@@ -715,19 +715,7 @@ string
 </em>
 </td>
 <td>
-<p>PredicateType defines the type of Predicate contained within the Statement.
-Deprecated in favour of &lsquo;Type&rsquo;, to be removed soon</p>
-</td>
-</tr>
-<tr>
-<td>
-<code>type</code><br/>
-<em>
-string
-</em>
-</td>
-<td>
-<p>Type defines the type of attestation contained within the Statement.</p>
+<p>PredicateType defines the type of Predicate contained within the Statement.</p>
 </td>
 </tr>
 <tr>
@@ -934,82 +922,6 @@ attributes for keyless verification, or a nested attestor declaration.</p>
 </td>
 <td>
 <p>Rules is a list of Rule instances. It contains auto generated rules added for pod controllers</p>
-</td>
-</tr>
-</tbody>
-</table>
-<hr />
-<h3 id="kyverno.io/v1.CEL">CEL
-</h3>
-<p>
-(<em>Appears on:</em>
-<a href="#kyverno.io/v1.Validation">Validation</a>, 
-<a href="#kyverno.io/v2beta1.Validation">Validation</a>)
-</p>
-<p>
-<p>CEL allows validation checks using the Common Expression Language (<a href="https://kubernetes.io/docs/reference/using-api/cel/">https://kubernetes.io/docs/reference/using-api/cel/</a>).</p>
-</p>
-<table class="table table-striped">
-<thead class="thead-dark">
-<tr>
-<th>Field</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>
-<code>expressions</code><br/>
-<em>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#validation-v1alpha1-admissionregistration">
-[]Kubernetes admissionregistration/v1alpha1.Validation
-</a>
-</em>
-</td>
-<td>
-<p>Expressions is a list of CELExpression types.</p>
-</td>
-</tr>
-<tr>
-<td>
-<code>paramKind</code><br/>
-<em>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#paramkind-v1alpha1-admissionregistration">
-Kubernetes admissionregistration/v1alpha1.ParamKind
-</a>
-</em>
-</td>
-<td>
-<em>(Optional)</em>
-<p>ParamKind is a tuple of Group Kind and Version.</p>
-</td>
-</tr>
-<tr>
-<td>
-<code>paramRef</code><br/>
-<em>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#paramref-v1alpha1-admissionregistration">
-Kubernetes admissionregistration/v1alpha1.ParamRef
-</a>
-</em>
-</td>
-<td>
-<em>(Optional)</em>
-<p>ParamRef references a parameter resource.</p>
-</td>
-</tr>
-<tr>
-<td>
-<code>auditAnnotations</code><br/>
-<em>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#auditannotation-v1alpha1-admissionregistration">
-[]Kubernetes admissionregistration/v1alpha1.AuditAnnotation
-</a>
-</em>
-</td>
-<td>
-<em>(Optional)</em>
-<p>AuditAnnotations contains CEL expressions which are used to produce audit annotations for the audit event of the API request.</p>
 </td>
 </tr>
 </tbody>
@@ -1281,7 +1193,6 @@ string
 <a href="#kyverno.io/v1.ForEachValidation">ForEachValidation</a>, 
 <a href="#kyverno.io/v1.Rule">Rule</a>, 
 <a href="#kyverno.io/v1.TargetResourceSpec">TargetResourceSpec</a>, 
-<a href="#kyverno.io/v2alpha1.CleanupPolicySpec">CleanupPolicySpec</a>, 
 <a href="#kyverno.io/v2beta1.Rule">Rule</a>)
 </p>
 <p>
@@ -3148,21 +3059,6 @@ See: <a href="https://kyverno.io/docs/writing-policies/preconditions/">https://k
 </tr>
 <tr>
 <td>
-<code>celPreconditions</code><br/>
-<em>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#matchcondition-v1-admissionregistration">
-[]Kubernetes admissionregistration/v1.MatchCondition
-</a>
-</em>
-</td>
-<td>
-<em>(Optional)</em>
-<p>CELPreconditions are used to determine if a policy rule should be applied by evaluating a
-set of CEL conditions. It can only be used with the validate.cel subrule</p>
-</td>
-</tr>
-<tr>
-<td>
 <code>mutate</code><br/>
 <em>
 <a href="#kyverno.io/v1.Mutation">
@@ -3877,20 +3773,6 @@ PodSecurity
 by specifying exclusions for Pod Security Standards controls.</p>
 </td>
 </tr>
-<tr>
-<td>
-<code>cel</code><br/>
-<em>
-<a href="#kyverno.io/v1.CEL">
-CEL
-</a>
-</em>
-</td>
-<td>
-<em>(Optional)</em>
-<p>CEL allows validation checks using the Common Expression Language (<a href="https://kubernetes.io/docs/reference/using-api/cel/">https://kubernetes.io/docs/reference/using-api/cel/</a>).</p>
-</td>
-</tr>
 </tbody>
 </table>
 <hr />
@@ -4016,6 +3898,67 @@ Kubernetes apiextensions/v1.JSON
 <em>(Optional)</em>
 <p>Default is an optional arbitrary JSON object that the variable may take if the JMESPath
 expression evaluates to nil</p>
+</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="kyverno.io/v1.ViolatedRule">ViolatedRule
+</h3>
+<p>
+<p>ViolatedRule stores the information regarding the rule.</p>
+</p>
+<table class="table table-striped">
+<thead class="thead-dark">
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>name</code><br/>
+<em>
+string
+</em>
+</td>
+<td>
+<p>Name specifies violated rule name.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>type</code><br/>
+<em>
+string
+</em>
+</td>
+<td>
+<p>Type specifies violated rule type.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>message</code><br/>
+<em>
+string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Message specifies violation message.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>status</code><br/>
+<em>
+string
+</em>
+</td>
+<td>
+<p>Status shows the rule response status</p>
 </td>
 </tr>
 </tbody>
@@ -5125,20 +5068,6 @@ CleanupPolicySpec
 <table class="table table-striped">
 <tr>
 <td>
-<code>context</code><br/>
-<em>
-<a href="#kyverno.io/v1.ContextEntry">
-[]ContextEntry
-</a>
-</em>
-</td>
-<td>
-<em>(Optional)</em>
-<p>Context defines variables and data sources that can be used during rule execution.</p>
-</td>
-</tr>
-<tr>
-<td>
 <code>match</code><br/>
 <em>
 <a href="#kyverno.io/v2beta1.MatchResources">
@@ -5272,20 +5201,6 @@ CleanupPolicySpec
 <br/>
 <br/>
 <table class="table table-striped">
-<tr>
-<td>
-<code>context</code><br/>
-<em>
-<a href="#kyverno.io/v1.ContextEntry">
-[]ContextEntry
-</a>
-</em>
-</td>
-<td>
-<em>(Optional)</em>
-<p>Context defines variables and data sources that can be used during rule execution.</p>
-</td>
-</tr>
 <tr>
 <td>
 <code>match</code><br/>
@@ -5490,20 +5405,6 @@ and schedule when the matching resources needs deleted.</p>
 </tr>
 </thead>
 <tbody>
-<tr>
-<td>
-<code>context</code><br/>
-<em>
-<a href="#kyverno.io/v1.ContextEntry">
-[]ContextEntry
-</a>
-</em>
-</td>
-<td>
-<em>(Optional)</em>
-<p>Context defines variables and data sources that can be used during rule execution.</p>
-</td>
-</tr>
 <tr>
 <td>
 <code>match</code><br/>
@@ -6818,21 +6719,6 @@ See: <a href="https://kyverno.io/docs/writing-policies/preconditions/">https://k
 </tr>
 <tr>
 <td>
-<code>celPreconditions</code><br/>
-<em>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#matchcondition-v1-admissionregistration">
-[]Kubernetes admissionregistration/v1.MatchCondition
-</a>
-</em>
-</td>
-<td>
-<em>(Optional)</em>
-<p>CELPreconditions are used to determine if a policy rule should be applied by evaluating a
-set of CEL conditions. It can only be used with the validate.cel subrule</p>
-</td>
-</tr>
-<tr>
-<td>
 <code>mutate</code><br/>
 <em>
 <a href="#kyverno.io/v1.Mutation">
@@ -7182,20 +7068,6 @@ PodSecurity
 <em>(Optional)</em>
 <p>PodSecurity applies exemptions for Kubernetes Pod Security admission
 by specifying exclusions for Pod Security Standards controls.</p>
-</td>
-</tr>
-<tr>
-<td>
-<code>cel</code><br/>
-<em>
-<a href="#kyverno.io/v1.CEL">
-CEL
-</a>
-</em>
-</td>
-<td>
-<em>(Optional)</em>
-<p>CEL allows validation checks using the Common Expression Language (<a href="https://kubernetes.io/docs/reference/using-api/cel/">https://kubernetes.io/docs/reference/using-api/cel/</a>).</p>
 </td>
 </tr>
 </tbody>

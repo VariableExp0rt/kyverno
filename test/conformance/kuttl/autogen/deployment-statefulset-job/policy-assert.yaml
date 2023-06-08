@@ -6,10 +6,9 @@ spec:
   validationFailureAction: Audit
   rules:
   - match:
-      any:
-        - resources:
-            kinds:
-            - Pod
+      resources:
+        kinds:
+        - Pod
     name: require-image-tag
     validate:
       message: An image tag is required.
@@ -18,10 +17,9 @@ spec:
           containers:
           - image: '*:*'
   - match:
-      any:
-        - resources:
-            kinds:
-            - Pod
+      resources:
+        kinds:
+        - Pod
     name: validate-image-tag
     validate:
       message: Using a mutable image tag e.g. 'latest' is not allowed.
@@ -37,12 +35,11 @@ status:
   autogen:
     rules:
     - match:
-        any:
-        - resources:
-            kinds:
-            - Deployment
-            - StatefulSet
-            - Job
+        resources:
+          kinds:
+          - Deployment
+          - StatefulSet
+          - Job
       name: autogen-require-image-tag
       validate:
         message: An image tag is required.
@@ -53,12 +50,11 @@ status:
                 containers:
                 - image: '*:*'
     - match:
-        any:
-        - resources:
-            kinds:
-            - Deployment
-            - StatefulSet
-            - Job
+        resources:
+          kinds:
+          - Deployment
+          - StatefulSet
+          - Job
       name: autogen-validate-image-tag
       validate:
         message: Using a mutable image tag e.g. 'latest' is not allowed.

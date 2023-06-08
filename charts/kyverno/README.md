@@ -2,7 +2,7 @@
 
 Kubernetes Native Policy Management
 
-![Version: v3.0.0](https://img.shields.io/badge/Version-v3.0.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: latest](https://img.shields.io/badge/AppVersion-latest-informational?style=flat-square)
+![Version: 3.0.1](https://img.shields.io/badge/Version-3.0.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v1.10.0](https://img.shields.io/badge/AppVersion-v1.10.0-informational?style=flat-square)
 
 ## About
 
@@ -632,7 +632,6 @@ The chart values are organised per component.
 | cleanupJobs.admissionReports.history | object | `{"failure":1,"success":1}` | Cronjob history |
 | cleanupJobs.admissionReports.podSecurityContext | object | `{}` | Security context for the pod |
 | cleanupJobs.admissionReports.securityContext | object | `{"allowPrivilegeEscalation":false,"capabilities":{"drop":["ALL"]},"privileged":false,"readOnlyRootFilesystem":true,"runAsNonRoot":true,"seccompProfile":{"type":"RuntimeDefault"}}` | Security context for the containers |
-| cleanupJobs.admissionReports.resources | object | `{}` | Job resources |
 | cleanupJobs.admissionReports.tolerations | list | `[]` | List of node taints to tolerate |
 | cleanupJobs.admissionReports.podAnnotations | object | `{}` | Pod Annotations |
 | cleanupJobs.clusterAdmissionReports.enabled | bool | `true` | Enable cleanup cronjob |
@@ -645,7 +644,6 @@ The chart values are organised per component.
 | cleanupJobs.clusterAdmissionReports.history | object | `{"failure":1,"success":1}` | Cronjob history |
 | cleanupJobs.clusterAdmissionReports.podSecurityContext | object | `{}` | Security context for the pod |
 | cleanupJobs.clusterAdmissionReports.securityContext | object | `{"allowPrivilegeEscalation":false,"capabilities":{"drop":["ALL"]},"privileged":false,"readOnlyRootFilesystem":true,"runAsNonRoot":true,"seccompProfile":{"type":"RuntimeDefault"}}` | Security context for the containers |
-| cleanupJobs.clusterAdmissionReports.resources | object | `{}` | Job resources |
 | cleanupJobs.clusterAdmissionReports.tolerations | list | `[]` | List of node taints to tolerate |
 | cleanupJobs.clusterAdmissionReports.podAnnotations | object | `{}` | Pod Annotations |
 
