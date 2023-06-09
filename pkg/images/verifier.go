@@ -30,7 +30,6 @@ type Options struct {
 	RekorURL             string
 	SignatureAlgorithm   string
 	PredicateType        string
-	Type                 string
 	Identities           string
 }
 

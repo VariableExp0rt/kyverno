@@ -291,11 +291,7 @@ func generateCronJobRule(rule *kyvernov1.Rule, controllers string) *kyvernov1.Ru
 		"spec/jobTemplate/spec/template",
 		[]string{PodControllerCronJob},
 		func(r kyvernov1.ResourceFilters, kinds []string) kyvernov1.ResourceFilters {
-			anyKind := r.DeepCopy()
-			for i := range anyKind {
-				anyKind[i].Kinds = kinds
-			}
-			return anyKind
+			return getAnyAllAutogenRule(r, "Job", kinds)
 		},
 	)
 }
